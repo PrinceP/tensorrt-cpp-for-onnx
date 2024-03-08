@@ -14,7 +14,7 @@ sudo sh cuda_12.4.0_550.54.14_linux.run
 
 ```bash
 
-sudo docker build -t trt_21.12_opencv .
+sudo docker build -t trt_24.02_opencv  .
 
 sudo docker run --rm --network="host" -v $(pwd):/app -it --runtime nvidia trt_24.02_opencv bash
 ```
@@ -46,15 +46,17 @@ make -j4
 
 // Check the results folder
 ```
------------
+
+Using YOLOv9-E
+
 <div style="display: flex; justify-content: space-between;
-    margin-right: 10px;">
-    <img src="./results/v9_bus.jpg" width="50%"/>
-    <img src="./results/v9_zidane.jpg" width="50%"/>
+padding: 10px">
+    <img src="./results/v9_bus.jpg" width="60%"/>
+    <img src="./results/v9_zidane.jpg" width="40%"/>
 </div>
-<div style="display: flex; justify-content: space-between;
-    margin-right: 10px;">
+<div style="display: flex; justify-content: space-between; padding: 10px">
     <img src="./results/v9_test.jpeg" width="100%"/>
 </div>
 
+- Batchsize = 1, Model size = 640x640 [Dynamic batching is supported]
 -----------
