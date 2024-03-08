@@ -47,3 +47,14 @@ make -j4
 // Check the results folder
 ```
 -----------
+<div style="display: flex; justify-content: space-between;
+    margin-right: 10px;">
+    <img src="./results/v9_bus.jpg" width="50%"/>
+    <img src="./results/v9_zidane.jpg" width="50%"/>
+</div>
+<div style="display: flex; justify-content: space-between;
+    margin-right: 10px;">
+    <img src="./results/v9_test.jpeg" width="100%"/>
+</div>
+
+-----------
