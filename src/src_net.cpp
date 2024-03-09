@@ -1,12 +1,23 @@
 #include "src_net.h"
 
-SrcNetwork::SrcNetwork(Logger g_logger, char* format, int* NCHW, vector<const char*> INPUT_BLOB_NAME, vector<const char*> OUTPUT_BLOB_NAME)
+SrcNetwork::SrcNetwork(Logger g_logger, char* format, int* min_NCHW, int* opt_NCHW, int* max_NCHW, vector<const char*> INPUT_BLOB_NAME, vector<const char*> OUTPUT_BLOB_NAME)
 : g_logger_(g_logger), format_(format)
 { 
-  batchsize_ = NCHW[0];
-  input_channel_ = NCHW[1];
-  model_height_ = NCHW[2];
-  model_width_ = NCHW[3];
+  min_batchsize_ =     min_NCHW[0];
+  min_input_channel_ = min_NCHW[1];
+  min_model_height_  = min_NCHW[2];
+  min_model_width_   = min_NCHW[3];
+
+  max_batchsize_ =     max_NCHW[0];
+  max_input_channel_ = max_NCHW[1];
+  max_model_height_  = max_NCHW[2];
+  max_model_width_   = max_NCHW[3];
+  
+  opt_batchsize_ =     opt_NCHW[0];
+  opt_input_channel_ = opt_NCHW[1];
+  opt_model_height_  = opt_NCHW[2];
+  opt_model_width_   = opt_NCHW[3];
+  
   m_runtime_ = nvinfer1::createInferRuntime(g_logger_);
   m_engine_ = nullptr;
   INPUT_BLOB_NAME_ = INPUT_BLOB_NAME;
@@ -34,7 +45,7 @@ void SrcNetwork::buildEngine(const char *onnx_filename, char *engine_filename){
     return;
   }
   IBuilder* builder = createInferBuilder(g_logger_);
-  builder->setMaxBatchSize(batchsize_); 
+  builder->setMaxBatchSize(max_batchsize_); 
   
   uint32_t flag = 1U <<static_cast<uint32_t>
     (NetworkDefinitionCreationFlag::kEXPLICIT_BATCH); 
@@ -49,12 +60,12 @@ void SrcNetwork::buildEngine(const char *onnx_filename, char *engine_filename){
 
   IOptimizationProfile* profile = builder->createOptimizationProfile();
 
-  profile->setDimensions(INPUT_BLOB_NAME_[0], OptProfileSelector::kMIN, Dims4(batchsize_, input_channel_, model_height_, model_width_));
-  profile->setDimensions(INPUT_BLOB_NAME_[0], OptProfileSelector::kOPT, Dims4(batchsize_, input_channel_, model_height_, model_width_));
-  profile->setDimensions(INPUT_BLOB_NAME_[0], OptProfileSelector::kMAX, Dims4(batchsize_, input_channel_, model_height_, model_width_));
+  profile->setDimensions(INPUT_BLOB_NAME_[0], OptProfileSelector::kMIN, Dims4(min_batchsize_, min_input_channel_, min_model_height_, min_model_width_));
+  profile->setDimensions(INPUT_BLOB_NAME_[0], OptProfileSelector::kOPT, Dims4(opt_batchsize_, opt_input_channel_, opt_model_height_, opt_model_width_));
+  profile->setDimensions(INPUT_BLOB_NAME_[0], OptProfileSelector::kMAX, Dims4(max_batchsize_, max_input_channel_, max_model_height_, max_model_width_));
 
   IBuilderConfig* config = builder->createBuilderConfig();
-  config->setMaxWorkspaceSize(1U << 24);
+  config->setMaxWorkspaceSize(1U << 30);
   config->addOptimizationProfile(profile);
   if(is_FP16_){
     config->setFlag(BuilderFlag::kFP16);
@@ -111,35 +122,35 @@ IExecutionContext* SrcNetwork::getEngineContext(char* engine_filename, cudaStrea
   
   for(int i = 0; i < num_bindings; ++i){
     Binding binding;
-	nvinfer1::Dims dims;
-	nvinfer1::DataType dtype = m_engine_->getBindingDataType(i);
-	std::string name = m_engine_->getBindingName(i);
-	binding.name = name;
-	binding.dsize = type_to_size(dtype);
+    nvinfer1::Dims dims;
+    nvinfer1::DataType dtype = m_engine_->getBindingDataType(i);
+    std::string name = m_engine_->getBindingName(i);
+    binding.name = name;
+    binding.dsize = type_to_size(dtype);
 
-	bool IsInput = m_engine_->bindingIsInput(i);
-	if (IsInput)
-	{
-		this->num_inputs += 1;
-		dims = m_engine_->getProfileDimensions(
-			i,
-			0,
-			nvinfer1::OptProfileSelector::kMAX);
-		binding.size = get_size_by_dims(dims);
-		binding.dims = dims;
-		this->input_bindings.push_back(binding);
-		// set max opt shape
-		m_context_->setBindingDimensions(i, dims);
+    bool IsInput = m_engine_->bindingIsInput(i);
+    if (IsInput)
+    {
+      this->num_inputs += 1;
+      dims = m_engine_->getProfileDimensions(i,
+                                            0,
+                                            nvinfer1::OptProfileSelector::kOPT
+      );
+      binding.size = get_size_by_dims(dims);
+      binding.dims = dims;
+      this->input_bindings.push_back(binding);
+      // set max opt shape
+      m_context_->setBindingDimensions(i, dims);
 
-	}
-	else
-	{
-		dims = m_context_->getBindingDimensions(i);
-		binding.size = get_size_by_dims(dims);
-		binding.dims = dims;
-		this->output_bindings.push_back(binding);
-		this->num_outputs += 1;
-	}
+    }
+    else
+    {
+      dims = m_context_->getBindingDimensions(i);
+      binding.size = get_size_by_dims(dims);
+      binding.dims = dims;
+      this->output_bindings.push_back(binding);
+      this->num_outputs += 1;
+    }
   }
   
   m_context_->setOptimizationProfileAsync(0, stream);

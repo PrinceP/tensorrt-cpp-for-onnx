@@ -1,5 +1,7 @@
 # TENSORRT CPP FOR ONNX 
 
+Tensorrt codebase in c++ to inference for all major neural arch using onnx and dynamic batching
+
 ## Nvidia Driver
 
 ```bash
@@ -32,7 +34,11 @@ commit 380284cb66817e9ffa30a80cad4c1b110897b2fb
 - Clone the yolov9
 ```bash
 
+git clone https://github.com/WongKinYiu/yolov9
+
 python3 export.py --weights <model_version>.pt --include onnx_end2end
+
+git clone https://github.com/PrinceP/tensorrt-cpp-for-onnx
 
 // Move <model_version>-end2end.onnx file to 'examples/yolov9'
 cp <model_version>-end2end.onnx /app/examples/yolov9
@@ -47,7 +53,7 @@ make -j4
 // Check the results folder
 ```
 
-Using YOLOv9-E
+Using YOLOv9-C
 
 <div style="display: flex; justify-content: space-between;
 padding: 10px">
@@ -58,5 +64,16 @@ padding: 10px">
     <img src="./results/v9_test.jpeg" width="100%"/>
 </div>
 
-- Batchsize = 1, Model size = 640x640 [Dynamic batching is supported]
+- Batchsize = 2, Model size = 640x640 [Dynamic batching is supported] This can be updated in the codebase.
+
+- If size issue happens while building. Increase the workspaceSize
+
+```bash
+    Internal error: plugin node /end2end/EfficientNMS_TRT requires XXX bytes of scratch space, but only XXX is available. Try increasing the workspace size with IBuilderConfig::setMemoryPoolLimit().
+```
+```cpp
+    config->setMaxWorkspaceSize(1U << 26) 
+    //The current memory is 2^26 bytes
+```
+
 -----------

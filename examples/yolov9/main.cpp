@@ -57,21 +57,21 @@ const std::vector<std::string> CLASS_NAMES = {
     };
     
 
-void postprocess(std::vector<Object>& objs, float* host_ptrs[4], PreParam pparam)
+void postprocess(std::vector<Object>& objs, float* host_ptrs[4], PreParam pparam, int index)
 {
 	objs.clear();
-	int* num_dets = reinterpret_cast<int*>(host_ptrs[0]);
-	auto* boxes = reinterpret_cast<float*>(host_ptrs[1]);
-	auto* scores = reinterpret_cast<float*>(host_ptrs[2]);
-	int* labels = reinterpret_cast<int*>(host_ptrs[3]);
+    auto* num_dets = reinterpret_cast<int*>(host_ptrs[0]);
+    auto* boxes =    reinterpret_cast<float*>(host_ptrs[1]);
+    auto* scores =   reinterpret_cast<float*>(host_ptrs[2]);
+    auto* labels =   reinterpret_cast<int*>(host_ptrs[3]);
 	auto& dw = pparam.dw;
 	auto& dh = pparam.dh;
 	auto& width = pparam.width;
 	auto& height = pparam.height;
 	auto& ratio = pparam.ratio;
-	for (int i = 0; i < num_dets[0]; i++)
+    for (int i = 0; i < num_dets[index]; i++)
 	{
-		float* ptr = boxes + i * 4;
+		float* ptr = boxes + i * 4 + index * 400;
 
 		float x0 = *ptr++ - dw;
 		float y0 = *ptr++ - dh;
@@ -87,8 +87,8 @@ void postprocess(std::vector<Object>& objs, float* host_ptrs[4], PreParam pparam
 		obj.rect.y = y0;
 		obj.rect.width = x1 - x0;
 		obj.rect.height = y1 - y0;
-		obj.prob = *(scores + i);
-		obj.label = *(labels + i);
+		obj.prob = *(scores + i + index * 100);
+		obj.label = *(labels + i + index * 100);
 		objs.push_back(obj);
 	}
 }
@@ -227,7 +227,7 @@ int main(int argc, char *argv[]){
 
     float* crop_hostbuffer_debug = nullptr;
 
-    int BatchSize = 1;
+    int BatchSize = 2;
 
     // prepare host cache
     hostbuffers = (uint8_t**)malloc(sizeof(uint8_t*) * BatchSize);
@@ -246,20 +246,26 @@ int main(int argc, char *argv[]){
     int InputW = 640;
     //Load the backbone
     Logger g_logger;
-    int NCHW_[4] = {BatchSize,3,InputH,InputW};
-    int* NCHW= &NCHW_[0];
+    int min_NCHW_[4] = {BatchSize,3,InputH,InputW};
+    int opt_NCHW_[4] = {BatchSize,3,InputH,InputW};
+    int max_NCHW_[4] = {BatchSize,3,InputH,InputW};
+    
+    int* min_NCHW= &min_NCHW_[0];
+    int* opt_NCHW= &opt_NCHW_[0];
+    int* max_NCHW= &max_NCHW_[0];
+
     char* format = "NCHW";
     vector<const char*> INPUT_BLOB_NAME = {"images"};
     vector<const char*> OUTPUT_BLOB_NAME = {"num_dets", "det_boxes", "det_scores", "det_classes"};
 
-    SrcNetwork detector_v9(g_logger, format, NCHW, INPUT_BLOB_NAME, OUTPUT_BLOB_NAME);
+    SrcNetwork detector_v9(g_logger, format, min_NCHW, opt_NCHW, max_NCHW, INPUT_BLOB_NAME, OUTPUT_BLOB_NAME);
 
     std::string onnx_path = argv[1];
 
     // if trt_path doesn't exist then build the engine
     std::string onnx_path_str(onnx_path);
     SPDLOG_LOGGER_INFO(logger,"Onnx Path: {}", onnx_path_str);
-    std::string trt_path = onnx_path_str.substr(0, onnx_path_str.find_last_of('.')) + ".trt";
+    std::string trt_path = onnx_path_str.substr(0, onnx_path_str.find_last_of('.')) + "_batchsize_" +std::to_string(BatchSize)+".trt";
     SPDLOG_LOGGER_INFO(logger,"TRT Path: {}", trt_path);
 
     std::ifstream trt_file(trt_path, std::ios::binary);
@@ -272,16 +278,16 @@ int main(int argc, char *argv[]){
     }
 
     float* backbone_buffers[detector_v9.num_inputs + detector_v9.num_outputs];
-    float* output_buffers[detector_v9.num_outputs];
+    float* output_buffers[BatchSize * detector_v9.num_outputs];
 
-    CUDA_CHECK(cudaMalloc((void**)&backbone_buffers[0], NCHW_[0] * NCHW_[1] * NCHW_[2] * NCHW_[3]  * sizeof(float)));    
+    CUDA_CHECK(cudaMalloc((void**)&backbone_buffers[0], max_NCHW_[0] * max_NCHW_[1] * max_NCHW_[2] * max_NCHW_[3]  * sizeof(float)));    
     int i = 0;
     for (auto& bindings : detector_v9.output_bindings){
         
         size_t size = bindings.size * bindings.dsize;
 
-        CUDA_CHECK(cudaMalloc((void**)&backbone_buffers[1 + i], size  *  sizeof(float)));
-        CUDA_CHECK(cudaMallocHost((void**)&output_buffers[i], size  *  sizeof(float)));
+        CUDA_CHECK(cudaMalloc((void**)&backbone_buffers[1 + i], max_NCHW_[0] * size  *  sizeof(float)));
+        CUDA_CHECK(cudaMallocHost((void**)&output_buffers[i], max_NCHW_[0] * size  *  sizeof(float)));
 
         i += 1;
     }
@@ -308,6 +314,7 @@ int main(int argc, char *argv[]){
         SPDLOG_LOGGER_INFO(logger,"Current Batch Size: {}", currentBatchSize); 
         
         //PREPROCESS
+        float *buffer_idx = (float *)backbone_buffers[0];
         std::vector<PreParam> pparam_per_batch;
         for(int index=0; index < currentBatchSize; index++){
 
@@ -363,7 +370,7 @@ int main(int argc, char *argv[]){
             
             crop_resize_kernel_img(
                 devicebuffers[index], cols, rows,        //src
-                backbone_buffers[index], InputW, InputH, //dst
+                buffer_idx, InputW, InputH, //dst
                 context_crop,      //  crop,
                 &Imean_values[0],  //  Imean_values,
                 &Iscale_values[0], //  Iscale_values,
@@ -373,12 +380,12 @@ int main(int argc, char *argv[]){
                 1,  //  is_norm: Divide by 255 
                 stream
             );
-                    
+            buffer_idx += InputH * InputW * 3 ;        
         }
         
         SPDLOG_LOGGER_INFO(logger, "Calling inference");
         //INFERENCE
-        detector_context->enqueue(BatchSize, (void**)backbone_buffers, stream, nullptr);
+        detector_context->enqueue(currentBatchSize, (void**)backbone_buffers, stream, nullptr);
         SPDLOG_LOGGER_INFO(logger, "Calling inference done");
         
         //COPY RESULTS
@@ -401,7 +408,7 @@ int main(int argc, char *argv[]){
         
         for(int index=0; index < currentBatchSize; index++){
             std::vector<Object> objs;
-            postprocess(objs, output_buffers, pparam_per_batch[index]);
+            postprocess(objs, output_buffers, pparam_per_batch[index], index);
             
             cv::Mat res;
             draw_objects(img_batch[index], res, objs, CLASS_NAMES, COLORS);

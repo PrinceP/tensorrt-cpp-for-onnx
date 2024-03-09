@@ -44,7 +44,7 @@ private:
 class SrcNetwork {
 
 public:
-  SrcNetwork(Logger g_logger, char* format, int* NCHW, vector<const char*> INPUT_BLOB_NAME, vector<const char*> OUTPUT_BLOB_NAME);
+  SrcNetwork(Logger g_logger, char* format, int* min_NCHW, int* opt_NCHW, int* max_NCHW, vector<const char*> INPUT_BLOB_NAME, vector<const char*> OUTPUT_BLOB_NAME);
   ~SrcNetwork();
   void buildEngine(const char* onnx_filename, char* engine_filename);
   IExecutionContext *getEngineContext(char* engine_filename, cudaStream_t stream);
@@ -56,10 +56,21 @@ public:
 	std::vector<Binding> output_bindings;
 
 private:
-  int batchsize_{0};
-  int input_channel_{0};
-  int model_width_{0};
-  int model_height_{0};
+  int min_batchsize_{0};
+  int min_input_channel_{0};
+  int min_model_width_{0};
+  int min_model_height_{0};
+  
+  int max_batchsize_{0};
+  int max_input_channel_{0};
+  int max_model_width_{0};
+  int max_model_height_{0};
+  
+  int opt_batchsize_{0};
+  int opt_input_channel_{0};
+  int opt_model_width_{0};
+  int opt_model_height_{0};
+  
   int is_FP16_{0};
 
   vector<const char*> INPUT_BLOB_NAME_;
