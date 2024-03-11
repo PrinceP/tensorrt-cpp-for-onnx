@@ -1,8 +1,11 @@
-# TENSORRT CPP FOR ONNX 
+
+# <div align="center">TENSORRT CPP FOR ONNX</d>
+ 
 
 Tensorrt codebase in c++ to inference for all major neural arch using onnx and dynamic batching
 
-## Nvidia Driver
+
+## <div align="left">NVIDIA Driver</d>
 
 ```bash
 
@@ -12,7 +15,7 @@ sudo sh cuda_12.4.0_550.54.14_linux.run
 
 ```
 
-## Docker
+## <div align="left">Docker</d>
 
 ```bash
 
@@ -21,15 +24,16 @@ sudo docker build -t trt_24.02_opencv  .
 sudo docker run --rm --network="host" -v $(pwd):/app -it --runtime nvidia trt_24.02_opencv bash
 ```
 
-## MODELS 
+## <div align="center">Models</div>
 
-### YOLOV9
+### <div align="left">YOLOV9</div>
+
+<details>
+<summary>Model Conversion</summary>
 
 url = https://github.com/WongKinYiu/yolov9.git
 
 commit 380284cb66817e9ffa30a80cad4c1b110897b2fb
-
-#### Model conversion
 
 - Clone the yolov9
 ```bash
@@ -53,18 +57,30 @@ make -j4
 // Check the results folder
 ```
 
-Using YOLOv9-C
+</details>
 
-<div style="display: flex; justify-content: space-between;
+<details>
+<summary>Results</summary>
+
+**Results  [YOLOv9-C, Batchsize = 2, Model size = 640x640]**
+
+<div style="display: flex; justify-content: center;
 padding: 10px">
-    <img src="./results/v9_bus.jpg" width="60%"/>
-    <img src="./results/v9_zidane.jpg" width="40%"/>
+    <img src="./results/v9_bus.jpg" width="100%"/>
 </div>
-<div style="display: flex; justify-content: space-between; padding: 10px">
+<div style="display: flex; justify-content: center;
+padding: 10px">
+    <img src="./results/v9_zidane.jpg" width="100%"/>
+</div>
+<div style="display: flex; justify-content: center; padding: 10px">
     <img src="./results/v9_test.jpeg" width="100%"/>
 </div>
+</details>
 
-- Batchsize = 2, Model size = 640x640 [Dynamic batching is supported] This can be updated in the codebase.
+<details>
+<summary>Notes</summary>
+
+-  Dynamic batching is supported. The batchsize and image sizes can be updated in the codebase.
 
 - If size issue happens while building. Increase the workspaceSize
 
@@ -75,5 +91,5 @@ padding: 10px">
     config->setMaxWorkspaceSize(1U << 26) 
     //The current memory is 2^26 bytes
 ```
+</details>
 
------------
