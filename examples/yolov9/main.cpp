@@ -215,7 +215,7 @@ int read_files_in_dir(const char *p_dir_name, std::vector<std::string> &file_nam
 
 int main(int argc, char *argv[]){
 
-    std::string jsonlogpattern = { "%^{\"timestamp\": \"%Y-%m-%dT%H:%M:%S.%eZ\",  \"logLevel\": \"%*\", \"logFacility\": null,  \"function\": \"%!\", \"file\": \"%s\", \"lineNo\": %#, \"triggerLabel\": null, \"message\": \"%v\", \"extra\": {}}%$" };
+    std::string jsonlogpattern = { "%^{\"timestamp\": \"%Y-%m-%dT%H:%M:%S.%eZ\",  \"logLevel\": \"%*\", \"logFacility\": null,  \"function\": \"%!\", \"file\": \"%s\", \"lineNo\": %#, \"message\": \"%v\"}%$" };
 	
 	auto formatter = std::make_unique<spdlog::pattern_formatter>();
     formatter->add_flag<my_formatter_flag>('*').set_pattern(jsonlogpattern);
