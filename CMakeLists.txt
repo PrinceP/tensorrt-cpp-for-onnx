@@ -47,6 +47,14 @@ target_link_libraries(yolov9 ${OpenCV_LIBS})
 target_link_libraries(yolov9 nvinfer_plugin)
 target_link_libraries(yolov9 processplugin)
 
+cuda_add_executable(yolov8-detect examples/yolov8/main_detect.cpp ${SRCS})
+target_link_libraries(yolov8-detect nvinfer)
+target_link_libraries(yolov8-detect nvonnxparser)
+target_link_libraries(yolov8-detect cuda)
+target_link_libraries(yolov8-detect cudart)
+target_link_libraries(yolov8-detect ${OpenCV_LIBS})
+target_link_libraries(yolov8-detect nvinfer_plugin)
+target_link_libraries(yolov8-detect processplugin)
 
 
 if(UNIX)
