@@ -56,6 +56,15 @@ target_link_libraries(yolov8-detect ${OpenCV_LIBS})
 target_link_libraries(yolov8-detect nvinfer_plugin)
 target_link_libraries(yolov8-detect processplugin)
 
+cuda_add_executable(yolov8-segment examples/yolov8/main_segment.cpp ${SRCS})
+target_link_libraries(yolov8-segment nvinfer)
+target_link_libraries(yolov8-segment nvonnxparser)
+target_link_libraries(yolov8-segment cuda)
+target_link_libraries(yolov8-segment cudart)
+target_link_libraries(yolov8-segment ${OpenCV_LIBS})
+target_link_libraries(yolov8-segment nvinfer_plugin)
+target_link_libraries(yolov8-segment processplugin)
+
 
 if(UNIX)
 add_definitions(-O2 -pthread)
