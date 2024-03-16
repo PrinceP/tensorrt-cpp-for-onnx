@@ -454,7 +454,7 @@ int main(int argc, char *argv[]){
             draw_objects(img_batch[index], res, objs, CLASS_NAMES, COLORS);
 
             // Save image
-            cv::imwrite("/app/results/v8test_" + img_name_batch[index], res);
+            cv::imwrite("/app/results/v8_" + img_name_batch[index], res);
             
         }
         SPDLOG_LOGGER_INFO(logger, "Calling postprocess done");
