@@ -77,22 +77,6 @@ padding: 10px">
 </div>
 </details>
 
-<details>
-<summary>Notes</summary>
-
--  Dynamic batching is supported. The batchsize and image sizes can be updated in the codebase.
-
-- If size issue happens while building. Increase the workspaceSize
-
-```bash
-    Internal error: plugin node /end2end/EfficientNMS_TRT requires XXX bytes of scratch space, but only XXX is available. Try increasing the workspace size with IBuilderConfig::setMemoryPoolLimit().
-```
-```cpp
-    config->setMaxWorkspaceSize(1U << 26) 
-    //The current memory is 2^26 bytes
-```
-</details>
-
 ### <div align="left">YOLOV8-Detect</div>
 
 <details>
@@ -144,22 +128,6 @@ padding: 10px">
 <div style="display: flex; justify-content: center; padding: 10px">
     <img src="./results/v8_test.jpeg" width="100%"/>
 </div>
-</details>
-
-<details>
-<summary>Notes</summary>
-
--  Dynamic batching is supported. The batchsize and image sizes can be updated in the codebase.
-
-- If size issue happens while building. Increase the workspaceSize
-
-```bash
-    Internal error: plugin node /end2end/EfficientNMS_TRT requires XXX bytes of scratch space, but only XXX is available. Try increasing the workspace size with IBuilderConfig::setMemoryPoolLimit().
-```
-```cpp
-    config->setMaxWorkspaceSize(1U << 26) 
-    //The current memory is 2^26 bytes
-```
 </details>
 
 ### <div align="left">YOLOV8-Segment</div>
@@ -218,8 +186,66 @@ padding: 10px">
 </div>
 </details>
 
+### <div align="left">YOLOV8-Pose</div>
+
 <details>
-<summary>Notes</summary>
+<summary>Model Conversion</summary>
+
+url = https://github.com/ultralytics/ultralytics
+
+ultralytics==8.1.24
+
+- Install ultralytics package in python
+```python
+
+from ultralytics import YOLO
+
+# Load a model
+model = YOLO('yolov8n-pose.pt')
+
+# Export the model
+model.export(format='onnx', dynamic=True)
+```
+```bash
+git clone https://github.com/PrinceP/tensorrt-cpp-for-onnx
+
+// Move <model_version>.onnx file to 'examples/yolov8'
+cp <model_version>.onnx /app/examples/yolov8
+
+mkdir build
+cd build
+cmake ..
+make -j4
+
+./yolov8-pose /app/examples/yolov8/<model_version>.onnx /app/data/
+
+// Check the results folder
+```
+
+</details>
+
+<details>
+<summary>Results</summary>
+
+**Results  [YOLOv8n, Batchsize = 2, Model size = 640x640]**
+
+<div style="display: flex; justify-content: center;
+padding: 10px">
+    <img src="./results/v8pose_bus.jpg" width="100%"/>
+</div>
+<div style="display: flex; justify-content: center;
+padding: 10px">
+    <img src="./results/v8pose_zidane.jpg" width="100%"/>
+</div>
+<div style="display: flex; justify-content: center; padding: 10px">
+    <img src="./results/v8pose_test.jpeg" width="100%"/>
+</div>
+</details>
+
+
+### <div align="left">NOTES</div>
+<details>
+<summary>Issues</summary>
 
 -  Dynamic batching is supported. The batchsize and image sizes can be updated in the codebase.
 
@@ -233,4 +259,3 @@ padding: 10px">
     //The current memory is 2^26 bytes
 ```
 </details>
-
