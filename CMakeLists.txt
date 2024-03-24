@@ -83,6 +83,16 @@ target_link_libraries(yolov8-obb ${OpenCV_LIBS})
 target_link_libraries(yolov8-obb nvinfer_plugin)
 target_link_libraries(yolov8-obb processplugin)
 
+
+cuda_add_executable(yolov8-classify examples/yolov8/main_classify.cpp ${SRCS})
+target_link_libraries(yolov8-classify nvinfer)
+target_link_libraries(yolov8-classify nvonnxparser)
+target_link_libraries(yolov8-classify cuda)
+target_link_libraries(yolov8-classify cudart)
+target_link_libraries(yolov8-classify ${OpenCV_LIBS})
+target_link_libraries(yolov8-classify nvinfer_plugin)
+target_link_libraries(yolov8-classify processplugin)
+
 if(UNIX)
 add_definitions(-O2 -pthread)
 endif(UNIX)
