@@ -3,6 +3,8 @@
 #include "crop_resize.h"
 
 #include <dirent.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -257,8 +259,15 @@ int read_files_in_dir(const char *p_dir_name, std::vector<std::string> &file_nam
     while ((p_file = readdir(p_dir)) != nullptr) {
         if (strcmp(p_file->d_name, ".") != 0 &&
             strcmp(p_file->d_name, "..") != 0) {
-            std::string cur_file_name(p_file->d_name);
-            file_names.push_back(cur_file_name);
+            // Construct full path of the file
+            std::string full_path = std::string(p_dir_name) + "/" + std::string(p_file->d_name);
+            
+            // Check if the file is a regular file
+            struct stat file_stat;
+            if (stat(full_path.c_str(), &file_stat) == 0 && S_ISREG(file_stat.st_mode)) {
+                // Add only if it's a regular file
+                file_names.push_back(p_file->d_name);
+            }
         }
     }
 
