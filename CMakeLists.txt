@@ -38,6 +38,16 @@ file(GLOB_RECURSE PROCESS_SRCS ${PROJECT_SOURCE_DIR}/kernels/*.cu)
 cuda_add_library(processplugin SHARED ${PROCESS_SRCS})
 target_link_libraries(processplugin nvinfer cuda cudart)
 
+
+cuda_add_executable(yolov10 examples/yolov10/main.cpp ${SRCS})
+target_link_libraries(yolov10 nvinfer)
+target_link_libraries(yolov10 nvonnxparser)
+target_link_libraries(yolov10 cuda)
+target_link_libraries(yolov10 cudart)
+target_link_libraries(yolov10 ${OpenCV_LIBS})
+target_link_libraries(yolov10 nvinfer_plugin)
+target_link_libraries(yolov10 processplugin)
+
 cuda_add_executable(yolov9 examples/yolov9/main.cpp ${SRCS})
 target_link_libraries(yolov9 nvinfer)
 target_link_libraries(yolov9 nvonnxparser)

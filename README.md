@@ -26,6 +26,56 @@ sudo docker run --rm --network="host" -v $(pwd):/app -it --runtime nvidia trt_24
 
 ## <div align="center">Models</div>
 
+### <div align="left">YOLOV10</div>
+
+<details>
+<summary>Model Conversion</summary>
+
+url = https://github.com/THU-MIG/yolov10
+
+- Clone the yolov10
+```bash
+
+git clone https://github.com/THU-MIG/yolov10
+
+yolo export model=yolov10n/s/m/b/l/x.pt format=onnx opset=13 simplify
+
+git clone https://github.com/PrinceP/tensorrt-cpp-for-onnx
+
+// Move <model_version>.onnx file to 'examples/yolov10'
+cp <model_version>.onnx /app/examples/yolov10
+
+mkdir build
+cd build
+cmake ..
+make -j4
+
+./yolov10 /app/examples/yolov10/<model_version>.onnx /app/data/
+
+// Check the results folder
+```
+
+</details>
+
+<details>
+<summary>Results</summary>
+
+**Results  [YOLOv10m, Batchsize = 1, Model size = 640x640]**
+
+<div style="display: flex; justify-content: center;
+padding: 10px">
+    <img src="./results/v10_bus.jpg" width="100%"/>
+</div>
+<div style="display: flex; justify-content: center;
+padding: 10px">
+    <img src="./results/v10_zidane.jpg" width="100%"/>
+</div>
+<div style="display: flex; justify-content: center; padding: 10px">
+    <img src="./results/v10_test.jpeg" width="100%"/>
+</div>
+</details>
+
+
 ### <div align="left">YOLOV9</div>
 
 <details>
@@ -359,6 +409,8 @@ padding: 10px">
 <summary>Issues</summary>
 
 -  Dynamic batching is supported. The batchsize and image sizes can be updated in the codebase.
+
+- Dynamic batch issue for yolov10: https://github.com/NVIDIA/TensorRT/issues/3273
 
 - If size issue happens while building. Increase the workspaceSize
 
