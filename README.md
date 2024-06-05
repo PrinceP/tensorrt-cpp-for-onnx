@@ -38,7 +38,7 @@ url = https://github.com/THU-MIG/yolov10
 
 git clone https://github.com/THU-MIG/yolov10
 
-yolo export model=yolov10n/s/m/b/l/x.pt format=onnx opset=13 simplify
+yolo export model=yolov10n/s/m/b/l/x.pt format=onnx opset=13 simplify dynamic
 
 git clone https://github.com/PrinceP/tensorrt-cpp-for-onnx
 
@@ -60,7 +60,7 @@ make -j4
 <details>
 <summary>Results</summary>
 
-**Results  [YOLOv10m, Batchsize = 1, Model size = 640x640]**
+**Results  [YOLOv10m, Batchsize = 2, Model size = 640x640]**
 
 <div style="display: flex; justify-content: center;
 padding: 10px">
@@ -410,7 +410,7 @@ padding: 10px">
 
 -  Dynamic batching is supported. The batchsize and image sizes can be updated in the codebase.
 
-- Dynamic batch issue for yolov10: https://github.com/NVIDIA/TensorRT/issues/3273
+- Dynamic batch issue resolved for yolov10: https://github.com/THU-MIG/yolov10/issues/27
 
 - If size issue happens while building. Increase the workspaceSize
 

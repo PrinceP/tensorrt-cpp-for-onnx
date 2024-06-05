@@ -73,7 +73,7 @@ void postprocess(std::vector<Object>& objs, float* host_ptrs[1], PreParam pparam
     for (int i = 0; i < 300; i++)
     {
         // Each entry consists of 6 floats: [x0, y0, x1, y1, score, label]
-        float* ptr = output_data + i * 6;
+        float* ptr = output_data + i * 6 + index * 300 * 6;
         
         float x0 = *ptr++ - dw;
         float y0 = *ptr++ - dh;
@@ -243,7 +243,7 @@ int main(int argc, char *argv[]){
 
     float* crop_hostbuffer_debug = nullptr;
 
-    int BatchSize = 1;
+    int BatchSize = 2;
 
     // prepare host cache
     hostbuffers = (uint8_t**)malloc(sizeof(uint8_t*) * BatchSize);
