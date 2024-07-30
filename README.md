@@ -26,6 +26,65 @@ sudo docker run --rm --network="host" -v $(pwd):/app -it --runtime nvidia trt_24
 
 ## <div align="center">Models</div>
 
+### <div align="left">RT-DETR</div>
+
+<details>
+<summary>Model Conversion</summary>
+
+url = https://github.com/lyuwenyu/RT-DETR.git
+
+- Clone the RT-DETR
+```bash
+
+git clone https://github.com/lyuwenyu/RT-DETR.git
+
+Follow steps from here 
+
+Version1
+https://github.com/lyuwenyu/RT-DETR/blob/main/rtdetr_pytorch/README.md#todo
+
+Version2
+https://github.com/lyuwenyu/RT-DETR/tree/main/rtdetrv2_pytorch#quick-start
+
+Any of above can run.
+
+git clone https://github.com/PrinceP/tensorrt-cpp-for-onnx
+
+// Move <model_version>.onnx file to 'examples/rt-detr'
+cp <model_version>.onnx /app/examples/rt-detr
+
+mkdir build
+cd build
+cmake ..
+make -j4
+
+./rt-detr /app/examples/rt-detr/<model_version>.onnx /app/data/
+
+// Check the results folder
+```
+
+</details>
+
+<details>
+<summary>Results</summary>
+
+**Results  [RT-DETRv2-S, Batchsize = 2, Model size = 640x640]**
+
+<div style="display: flex; justify-content: center;
+padding: 10px">
+    <img src="./results/rt-detr_bus.jpg" width="100%"/>
+</div>
+<div style="display: flex; justify-content: center;
+padding: 10px">
+    <img src="./results/rt-detr_zidane.jpg" width="100%"/>
+</div>
+<div style="display: flex; justify-content: center; padding: 10px">
+    <img src="./results/rt-detr_test.jpeg" width="100%"/>
+</div>
+</details>
+
+
+
 ### <div align="left">YOLOV10</div>
 
 <details>

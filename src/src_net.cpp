@@ -60,10 +60,21 @@ void SrcNetwork::buildEngine(const char *onnx_filename, char *engine_filename){
 
   IOptimizationProfile* profile = builder->createOptimizationProfile();
 
-  profile->setDimensions(INPUT_BLOB_NAME_[0], OptProfileSelector::kMIN, Dims4(min_batchsize_, min_input_channel_, min_model_height_, min_model_width_));
-  profile->setDimensions(INPUT_BLOB_NAME_[0], OptProfileSelector::kOPT, Dims4(opt_batchsize_, opt_input_channel_, opt_model_height_, opt_model_width_));
-  profile->setDimensions(INPUT_BLOB_NAME_[0], OptProfileSelector::kMAX, Dims4(max_batchsize_, max_input_channel_, max_model_height_, max_model_width_));
+  if(INPUT_BLOB_NAME_.size() == 1){
+    profile->setDimensions(INPUT_BLOB_NAME_[0], OptProfileSelector::kMIN, Dims4(min_batchsize_, min_input_channel_, min_model_height_, min_model_width_));
+    profile->setDimensions(INPUT_BLOB_NAME_[0], OptProfileSelector::kOPT, Dims4(opt_batchsize_, opt_input_channel_, opt_model_height_, opt_model_width_));
+    profile->setDimensions(INPUT_BLOB_NAME_[0], OptProfileSelector::kMAX, Dims4(max_batchsize_, max_input_channel_, max_model_height_, max_model_width_));
+  }else{
+    profile->setDimensions(INPUT_BLOB_NAME_[0], OptProfileSelector::kMIN, Dims4(min_batchsize_, min_input_channel_, min_model_height_, min_model_width_));
+    profile->setDimensions(INPUT_BLOB_NAME_[0], OptProfileSelector::kOPT, Dims4(opt_batchsize_, opt_input_channel_, opt_model_height_, opt_model_width_));
+    profile->setDimensions(INPUT_BLOB_NAME_[0], OptProfileSelector::kMAX, Dims4(max_batchsize_, max_input_channel_, max_model_height_, max_model_width_));
 
+    profile->setDimensions(INPUT_BLOB_NAME_[1], OptProfileSelector::kMIN, Dims2(min_batchsize_, 2));
+    profile->setDimensions(INPUT_BLOB_NAME_[1], OptProfileSelector::kOPT, Dims2(opt_batchsize_, 2));
+    profile->setDimensions(INPUT_BLOB_NAME_[1], OptProfileSelector::kMAX, Dims2(max_batchsize_, 2));
+    
+  }
+  
   IBuilderConfig* config = builder->createBuilderConfig();
   config->setMaxWorkspaceSize(1U << 30);
   config->addOptimizationProfile(profile);
