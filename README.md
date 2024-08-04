@@ -26,6 +26,67 @@ sudo docker run --rm --network="host" -v $(pwd):/app -it --runtime nvidia trt_24
 
 ## <div align="center">Models</div>
 
+### <div align="left">YOLO-World</div>
+
+<details>
+<summary>Model Conversion</summary>
+
+url = https://github.com/AILab-CVC/YOLO-World
+
+- Clone the YOLO-World
+```bash
+
+git clone https://github.com/AILab-CVC/YOLO-World
+
+Follow steps for installation
+https://github.com/AILab-CVC/YOLO-World?tab=readme-ov-file#1-installation
+
+Define custom classes(Any name can be defined)
+echo '[["helmet"], ["head"],["sunglasses"]]' > custom_class.json
+
+PYTHONPATH=./ python3 deploy/export_onnx.py configs/pretrain/yolo_world_v2_s_vlpan_bn_2e-3_100e_4x8gpus_obj365v1_goldg_train_lvis_minival.py yolo_world_v2_s_obj365v1_goldg_pretrain-55b943ea.pth --custom-text custom_class.json --opset 12 --without-nms
+
+After the fix https://github.com/AILab-CVC/YOLO-World/pull/416
+python3 deploy/onnx_demo.py ./work_dirs/yolo_world_v2_s_obj365v1_goldg_pretrain-55b943ea.onnx ~/disk1/uncanny/projects/tensorrt-cpp-for-onnx/data/ custom_class.json  --onnx-nms
+
+git clone https://github.com/PrinceP/tensorrt-cpp-for-onnx
+
+Adjust settings in the ./examples/yolo-world/main.cpp 
+0.019/*score_threshold*/, 0.7/*iou_threshold*/, 300/*max_detections*/
+
+// Move <model_version>.onnx file to 'examples/yolo-world'
+cp cp ./work_dirs/<model_version>.onnx /app/examples/yolo-world
+
+mkdir build
+cd build
+cmake ..
+make -j4
+
+./yolo-world /app/examples/yolo-world/<model_version>.onnx /app/data/
+
+// Check the results folder
+```
+
+</details>
+
+<details>
+<summary>Results</summary>
+
+**Results  [yolo_world_v2_s_obj365v1_goldg_pretrain, Batchsize = 1, Model size = 640x640]**
+
+<div style="display: flex; justify-content: center;
+padding: 10px">
+    <img src="./results/yoloworld_bus.jpg" width="100%"/>
+</div>
+<div style="display: flex; justify-content: center;
+padding: 10px">
+    <img src="./results/yoloworld_zidane.jpg" width="100%"/>
+</div>
+<div style="display: flex; justify-content: center; padding: 10px">
+    <img src="./results/yoloworld_test.jpeg" width="100%"/>
+</div>
+</details>
+
 ### <div align="left">RT-DETR</div>
 
 <details>
@@ -467,9 +528,11 @@ padding: 10px">
 <details>
 <summary>Issues</summary>
 
--  Dynamic batching is supported. The batchsize and image sizes can be updated in the codebase.
+- Dynamic batching is supported. The batchsize and image sizes can be updated in the codebase.
 
 - Dynamic batch issue resolved for yolov10: https://github.com/THU-MIG/yolov10/issues/27
+
+- Dynamic batch not present for Yolo-World
 
 - If size issue happens while building. Increase the workspaceSize
 
