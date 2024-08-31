@@ -524,6 +524,86 @@ padding: 10px">
 </div>
 </details>
 
+
+
+
+### <div align="left">YOLOV5-Face</div>
+
+<details>
+<summary>Model Conversion</summary>
+
+url = https://github.com/deepcam-cn/yolov5-face
+
+
+- Install onnx==1.16.2, tqdm, thop, seaborn, torch==1.9, torchvision==0.10
+
+- Changes for dynamic shape
+```txt
+diff --git a/export.py b/export.py
+index 1aa7dae..2502e23 100644
+--- a/export.py
++++ b/export.py
+@@ -75,14 +75,22 @@ if __name__ == '__main__':
+     print('\nStarting ONNX export with onnx %s...' % onnx.__version__)
+     f = opt.weights.replace('.pt', '.onnx')  # filename
+     model.fuse()  # only for ONNX
+-    input_names=['input']
+-    output_names=['output']
+-    torch.onnx.export(model, img, f, verbose=False, opset_version=12, 
++    
++    # Dynamic batching support
++    input_names = [ "input" ]
++    output_names = [ "output" ]
++    dynamic_axes={'input' : {0 : 'batch_size'}, 'output' : {0 : 'batch_size'}}
++    dynamic_axes['input'][2] = 'height'
++    dynamic_axes['input'][3] = 'width'
++    
++    torch.onnx.export(model, img, f, verbose=True, opset_version=12, 
+         input_names=input_names,
+         output_names=output_names,
++        # dynamic_axes = dynamic_axes
+         dynamic_axes = {'input': {0: 'batch'},
+                         'output': {0: 'batch'}
+                         } if opt.dynamic else None)
++    # )
+ 
+     # Checks
+     onnx_model = onnx.load(f)  # load onnx model
+```
+- Convert pytorch to onnx
+```bash
+python3 export.py --weights ./yolov5s-face.pt --dynamic
+```
+
+```bash
+git clone https://github.com/PrinceP/tensorrt-cpp-for-onnx
+
+// Move <model_version>.onnx file to 'examples/yolov5-face'
+cp <model_version>.onnx /app/examples/yolov5-face
+
+mkdir build
+cd build
+cmake ..
+make -j4
+
+./yolov5-face /app/examples/yolov5-face/<model_version>.onnx /app/data/yolov5-face/
+
+// Check the results folder
+```
+
+</details>
+
+<details>
+<summary>Results</summary>
+
+**Results  [YOLOv5s-face, Batchsize = 2, Model size = 640x640]**
+
+<div style="display: flex; justify-content: center;
+padding: 10px">
+    <img src="./results/yolov5-face_sample.jpg" width="100%"/>
+</div>
+</details>
+
 ### <div align="left">NOTES</div>
 <details>
 <summary>Issues</summary>
