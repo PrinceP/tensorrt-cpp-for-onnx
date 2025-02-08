@@ -26,6 +26,68 @@ sudo docker run --rm --network="host" -v $(pwd):/app -it --runtime nvidia trt_24
 
 ## <div align="center">Models</div>
 
+### <div align="left">Depth anything v2</div>
+
+<details>
+<summary>Model Conversion</summary>
+
+url = https://github.com/DepthAnything/Depth-Anything-V2.git
+
+- Clone the Depth-Anything
+```bash
+
+git clone https://github.com/DepthAnything/Depth-Anything-V2.git
+cd Depth-Anything-V2/
+pip3 install -r requirements.txt
+
+Follow steps for making onnx model files
+Download the model from here https://github.com/DepthAnything/Depth-Anything-V2?tab=readme-ov-file#prepraration
+
+
+git clone https://github.com/spacewalk01/depth-anything-tensorrt.git
+cp depth_anything_v2/dpt.py ../depth_anything_v2/
+cp depth_anything_v2/export_v2.py ../
+cd ..
+
+python3.11 export_v2.py --encoder vitb --input-size 518
+Model exported to depth_anything_v2_vitb.onnx
+
+python3.11 export_v2.py --encoder vits --input-size 518
+Model exported to depth_anything_v2_vits.onnx
+
+git clone https://github.com/PrinceP/tensorrt-cpp-for-onnx
+
+
+// Move <model_version>.onnx file to 'examples/depth-anything'
+cp depth_anything_v2_vit<b/s/l>.onnx /app/examples/depth-anything
+
+mkdir build
+cd build
+cmake ..
+make -j4
+
+./depth_anything_v2 /app/examples/depth-anything/depth_anything_v2_vit<b/s/l>.onnx /app/data/depth-anything/
+
+// Check the results folder
+```
+
+</details>
+
+<details>
+<summary>Results</summary>
+
+**Results  [depth_anything_v2_vitb, Batchsize = 1, Model size = 518x518]**
+
+<div style="display: flex; justify-content: center;
+padding: 10px">
+    <img src="./results/depth_anything_v2_demo02.jpg" width="100%"/>
+</div>
+<div style="display: flex; justify-content: center;
+padding: 10px">
+    <img src="./results/depth_anything_v2_demo06.jpg" width="100%"/>
+</div>
+</details>
+
 ### <div align="left">YOLO-World</div>
 
 <details>
